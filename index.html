@@ -5,107 +5,170 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>バーコードハント3D</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
+  * { box-sizing: border-box; }
   html, body {
     position: fixed; overflow: hidden; width: 100%; height: 100%;
     touch-action: none; user-select: none; -webkit-user-select: none;
     -webkit-touch-callout: none; margin: 0; padding: 0;
-    font-family: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", sans-serif;
+    font-family: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
     background: #1a1f2e;
   }
-  #game-canvas { position: absolute; inset: 0; }
-  .overlay-btn { min-width: 44px; min-height: 44px; }
-  @keyframes floatUp {
-    0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
-    100% { transform: translate(-50%, -80px) scale(1.4); opacity: 0; }
+  #game-canvas { position: absolute; inset: 0; z-index: 0; display: block; }
+
+  .screen {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 24px;
   }
+
+  /* ---------- HUD ---------- */
+  #hud { position: absolute; inset: 0; z-index: 20; pointer-events: none; display: none; }
+  #hud-top {
+    position: absolute; top: 0; left: 0; right: 0; padding: 12px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .pill {
+    background: rgba(0,0,0,0.6); border-radius: 14px; padding: 8px 18px;
+    color: #fff; font-size: 22px; font-weight: 900; white-space: nowrap;
+  }
+  #patience-wrap { flex: 1; max-width: 640px; }
+  #patience-label { color: #fff; font-size: 15px; font-weight: 900; margin-bottom: 4px; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  #patience-track {
+    height: 26px; background: rgba(0,0,0,0.5); border-radius: 999px; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.4);
+  }
+  #patience-bar { height: 100%; border-radius: 999px; background: #4ade80; transition: background-color .3s; }
+  #status-msg {
+    position: absolute; top: 96px; left: 50%; transform: translateX(-50%);
+    color: #fff; font-size: 20px; font-weight: 900; background: rgba(79,70,229,0.85);
+    border-radius: 999px; padding: 8px 24px; box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    display: none; white-space: nowrap;
+  }
+  @keyframes shakeBar { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .shake { animation: shakeBar .3s ease-in-out infinite; }
+
+  /* ---------- buttons ---------- */
+  .big-btn {
+    min-width: 220px; min-height: 60px; pointer-events: auto;
+    background: #facc15; color: #1e1b0e; font-size: 26px; font-weight: 900;
+    border: none; border-radius: 18px; padding: 16px 48px; box-shadow: 0 8px 0 #b8860b, 0 10px 20px rgba(0,0,0,.35);
+    cursor: pointer; transition: transform .08s;
+  }
+  .big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #b8860b, 0 4px 10px rgba(0,0,0,.35); }
+
+  /* ---------- title screen ---------- */
+  #start-screen { background: linear-gradient(180deg,#312e81,#0f172a); }
+  #start-screen .emoji-hero { font-size: 64px; margin-bottom: 8px; }
+  #start-screen h1 { color: #fff; font-size: 42px; font-weight: 900; margin: 0 0 4px; letter-spacing: .03em; }
+  #start-screen .sub { color: #fcd34d; font-size: 18px; font-weight: 800; margin: 0 0 20px; }
+  #start-screen .rules {
+    background: rgba(255,255,255,0.1); border-radius: 20px; padding: 20px 26px; margin-bottom: 28px;
+    color: #fff; font-size: 17px; line-height: 1.9; text-align: left; max-width: 460px;
+  }
+  #start-screen .rules b { color: #fcd34d; }
+  #start-screen .rules .warn { color: #f87171; }
+
+  /* ---------- checkout ---------- */
+  #checkout-screen { background: rgba(0,0,0,0.6); display: none; }
+  @keyframes popIn { 0%{transform:scale(.6);opacity:0} 100%{transform:scale(1);opacity:1} }
+  .checkout-card {
+    background: #fff; border-radius: 26px; padding: 32px 48px; box-shadow: 0 20px 40px rgba(0,0,0,.4);
+    animation: popIn .25s ease-out;
+  }
+  .checkout-card .emoji { font-size: 48px; margin-bottom: 6px; }
+  .checkout-card .total { font-size: 30px; font-weight: 900; color: #1e293b; }
+  .checkout-card .thanks { font-size: 19px; font-weight: 800; color: #059669; margin-top: 6px; }
+
+  /* ---------- game over ---------- */
+  #gameover-screen { background: rgba(69,10,10,0.94); display: none; }
+  #gameover-screen .emoji-hero { font-size: 64px; margin-bottom: 8px; }
+  #gameover-screen h2 { color: #f87171; font-size: 40px; font-weight: 900; letter-spacing: .08em; margin: 0 0 8px; }
+  #gameover-screen .sub { color: #fff; font-size: 19px; font-weight: 700; margin: 0 0 24px; }
+  .score-card {
+    background: rgba(255,255,255,0.1); border-radius: 20px; padding: 18px 44px; margin-bottom: 28px;
+  }
+  .score-card .lbl { color: #fcd34d; font-size: 17px; font-weight: 800; }
+  .score-card .num { color: #fff; font-size: 56px; font-weight: 900; }
+  .score-card .unit { font-size: 26px; }
+
+  /* ---------- floating money ---------- */
+  @keyframes floatUp { 0%{ transform: translate(-50%,0) scale(1); opacity:1 } 100%{ transform: translate(-50%,-90px) scale(1.4); opacity:0 } }
   .float-money {
-    position: absolute; animation: floatUp 0.9s ease-out forwards;
-    font-weight: bold; color: #ffd700; text-shadow: 0 2px 6px rgba(0,0,0,.6);
-    font-size: 2rem; pointer-events: none; z-index: 40;
+    position: absolute; left: 50%; top: 38%; animation: floatUp .9s ease-out forwards;
+    font-weight: 900; color: #ffd700; text-shadow: 0 2px 6px rgba(0,0,0,.6);
+    font-size: 34px; pointer-events: none; z-index: 40;
   }
-  @keyframes shake {
-    0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}
+
+  /* ---------- rotate hint ---------- */
+  #rotate-hint {
+    display: none; position: absolute; inset: 0; z-index: 50; background: #0f172a;
+    color: #fff; font-size: 24px; font-weight: 800; text-align: center;
+    flex-direction: column; align-items: center; justify-content: center;
   }
-  .shake { animation: shake .3s ease-in-out infinite; }
-  @keyframes popIn {
-    0%{transform:scale(.6);opacity:0} 100%{transform:scale(1);opacity:1}
-  }
-  .pop-in { animation: popIn .25s ease-out forwards; }
-  #rotate-hint { display: none; }
-  @media (orientation: portrait) {
-    #rotate-hint { display: flex; }
-  }
+  #rotate-hint .emoji { font-size: 60px; margin-bottom: 16px; }
+  @media (orientation: portrait) { #rotate-hint { display: flex; } }
 </style>
 </head>
 <body>
 <canvas id="game-canvas"></canvas>
 
 <!-- ===== 2D UI overlay ===== -->
-<div id="hud" class="absolute inset-0 pointer-events-none hidden z-20">
-  <!-- top bar -->
-  <div class="absolute top-0 left-0 right-0 p-3 flex items-center gap-4">
-    <div class="bg-black/60 rounded-xl px-4 py-2 text-white text-xl font-bold whitespace-nowrap">
-      🛒 <span id="score">0</span> 個
+<div id="hud">
+  <div id="hud-top">
+    <div class="pill">🛒 <span id="score">0</span> 個</div>
+    <div id="patience-wrap">
+      <div id="patience-label">😊 お客さんのガマン</div>
+      <div id="patience-track"><div id="patience-bar" style="width:100%"></div></div>
     </div>
-    <div class="flex-1 max-w-xl">
-      <div class="text-white text-sm font-bold mb-1 drop-shadow">😊 お客さんのガマン</div>
-      <div class="h-6 bg-black/50 rounded-full overflow-hidden border-2 border-white/40">
-        <div id="patience-bar" class="h-full rounded-full transition-colors duration-300" style="width:100%; background:#4ade80"></div>
-      </div>
-    </div>
-    <div class="bg-black/60 rounded-xl px-4 py-2 text-white text-xl font-bold whitespace-nowrap">
-      📦 <span id="item-num">1</span>/3
-    </div>
+    <div class="pill">📦 <span id="item-num">1</span>/3</div>
   </div>
-  <!-- status message -->
-  <div id="status-msg" class="absolute top-24 left-1/2 -translate-x-1/2 text-white text-xl font-bold bg-indigo-600/80 rounded-full px-6 py-2 drop-shadow-lg hidden"></div>
+  <div id="status-msg"></div>
 </div>
 
 <!-- ===== start screen ===== -->
-<div id="start-screen" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-gradient-to-b from-indigo-900 to-slate-900 text-center px-6">
-  <div class="text-6xl mb-3">🏪</div>
-  <h1 class="text-4xl md:text-5xl font-black text-white mb-2 tracking-wide">バーコードハント3D</h1>
-  <p class="text-amber-300 text-lg font-bold mb-6">〜 レジ打ち スピード勝負！ 〜</p>
-  <div class="bg-white/10 rounded-2xl p-5 text-white text-left text-base md:text-lg leading-relaxed mb-8 max-w-md">
-    <p>👆 商品を<b class="text-amber-300">ドラッグして回転</b></p>
-    <p>📊 かくれた<b class="text-amber-300">バーコード</b>を見つけよう</p>
-    <p>🔴 <b class="text-red-400">赤いレーザー</b>（正面）に向けるとスキャン！</p>
-    <p>⏰ お客さんが<b class="text-red-400">怒る前に</b>3個スキャン！</p>
+<div id="start-screen" class="screen">
+  <div class="emoji-hero">🏪</div>
+  <h1>バーコードハント3D</h1>
+  <p class="sub">〜 レジ打ち スピード勝負！ 〜</p>
+  <div class="rules">
+    <p>👆 商品を<b>ドラッグして回転</b></p>
+    <p>📊 かくれた<b>バーコード</b>を見つけよう</p>
+    <p>🔴 <b style="color:#f87171">赤いレーザー</b>（正面）に向けるとスキャン！</p>
+    <p>⏰ お客さんが<span class="warn">怒る前に</span>3個スキャン！</p>
   </div>
-  <button id="start-btn" class="overlay-btn pointer-events-auto bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-900 text-2xl font-black rounded-2xl px-12 py-4 shadow-lg transition-transform">スタート！</button>
+  <button id="start-btn" class="big-btn">スタート！</button>
 </div>
 
 <!-- ===== checkout overlay ===== -->
-<div id="checkout-screen" class="absolute inset-0 z-30 hidden flex-col items-center justify-center bg-black/60 text-center">
-  <div class="pop-in bg-white rounded-3xl px-10 py-8 shadow-2xl">
-    <div class="text-5xl mb-2">💰</div>
-    <div class="text-3xl font-black text-slate-800">合計 <span id="checkout-total">$20</span>！</div>
-    <div class="text-xl font-bold text-emerald-600 mt-2">おつりです、ありがとうございました！</div>
+<div id="checkout-screen" class="screen">
+  <div class="checkout-card">
+    <div class="emoji">💰</div>
+    <div class="total">合計 <span id="checkout-total">$20</span>！</div>
+    <div class="thanks">おつりです、ありがとうございました！</div>
   </div>
 </div>
 
 <!-- ===== game over ===== -->
-<div id="gameover-screen" class="absolute inset-0 z-30 hidden flex-col items-center justify-center bg-red-950/90 text-center px-6">
-  <div class="text-6xl mb-3">😡💢</div>
-  <h2 class="text-5xl font-black text-red-400 mb-2 tracking-widest">CASHIER FAILURE</h2>
-  <p class="text-white text-xl font-bold mb-6">お客さんが怒って帰ってしまった…</p>
-  <div class="bg-white/10 rounded-2xl px-10 py-6 mb-8">
-    <div class="text-amber-300 text-lg font-bold">スキャンした商品</div>
-    <div class="text-white text-6xl font-black"><span id="final-score">0</span> <span class="text-3xl">個</span></div>
+<div id="gameover-screen" class="screen">
+  <div class="emoji-hero">😡💢</div>
+  <h2>CASHIER FAILURE</h2>
+  <p class="sub">お客さんが怒って帰ってしまった…</p>
+  <div class="score-card">
+    <div class="lbl">スキャンした商品</div>
+    <div class="num"><span id="final-score">0</span> <span class="unit">個</span></div>
   </div>
-  <button id="retry-btn" class="overlay-btn pointer-events-auto bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-900 text-2xl font-black rounded-2xl px-12 py-4 shadow-lg transition-transform">もう一度！</button>
+  <button id="retry-btn" class="big-btn">もう一度！</button>
 </div>
 
 <!-- ===== rotate hint ===== -->
-<div id="rotate-hint" class="absolute inset-0 z-50 bg-slate-900 flex-col items-center justify-center text-white text-2xl font-bold text-center">
-  <div class="text-6xl mb-4">📱↻</div>
+<div id="rotate-hint">
+  <div class="emoji">📱↻</div>
   iPadを横向きにしてください
 </div>
 
 <script type="importmap">
-{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+{ "imports": { "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.js" } }
 </script>
 <script type="module">
 import * as THREE from 'three';
@@ -180,7 +243,9 @@ addEventListener('resize', resize); resize();
 /* ---- store environment ---- */
 const mat = (c)=>new THREE.MeshLambertMaterial({color:c});
 // floor
-scene.add(Object.assign(new THREE.Mesh(new THREE.PlaneGeometry(30,30), mat(0xd9cbb0)), {rotation:new THREE.Euler(-Math.PI/2,0,0)}));
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(30,30), mat(0xd9cbb0));
+floor.rotation.x = -Math.PI/2;
+scene.add(floor);
 // back wall + shelves (decoration)
 const wall = new THREE.Mesh(new THREE.BoxGeometry(30, 8, 0.3), mat(0xf2ede2));
 wall.position.set(0, 4, -6); scene.add(wall);
@@ -211,7 +276,7 @@ const scannerGrp = new THREE.Group();
 const postMat = mat(0x3b4252);
 for(const sx of [-1,1]){
   const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.7, 0.12), postMat);
-  post.position.set(sx*1.15, -0.35+0.35, 0); // centered at beam height
+  post.position.set(sx*1.15, -0.35+0.35, 0);
   scannerGrp.add(post);
   const base = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.3), postMat);
   base.position.set(sx*1.15, -0.35, 0);
@@ -220,9 +285,8 @@ for(const sx of [-1,1]){
 const beamMat = new THREE.MeshBasicMaterial({color:0xff2222, transparent:true, opacity:0.85});
 const beam = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.05, 0.05), beamMat);
 scannerGrp.add(beam);
-scannerGrp.position.set(0, 2.0, 1.85); // just in front of the item, beam at barcode height
+scannerGrp.position.set(0, 2.0, 1.85);
 scene.add(scannerGrp);
-// laser direction: beam looks toward -Z (into the item). Barcode must face +Z (toward camera/scanner).
 const SCAN_DIR = new THREE.Vector3(0, 0, 1);
 
 /* ---- barcode texture ---- */
@@ -240,15 +304,13 @@ function makeBarcodeTexture(){
   g.font = 'bold 14px monospace';
   const num = String(Math.floor(Math.random()*9e11)+1e11);
   g.fillText(num.slice(0,12), 14, 88);
-  const t = new THREE.CanvasTexture(c);
-  return t;
+  return new THREE.CanvasTexture(c);
 }
 
 /* ---- product generators ---- */
 function makeMilkCarton(){
   const grp = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.0, 0.6), mat(0xffffff));
-  grp.add(body);
+  grp.add(new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.0, 0.6), mat(0xffffff)));
   const top = new THREE.Mesh(new THREE.ConeGeometry(0.44, 0.35, 4), mat(0x7ec8e3));
   top.position.y = 0.67; top.rotation.y = Math.PI/4; grp.add(top);
   const label = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.4, 0.62), mat(0x7ec8e3));
@@ -266,8 +328,7 @@ function makeSodaCan(){
 }
 function makeSnackBox(){
   const grp = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.6, 0.35), mat([0xffb703,0xfb8500,0x06d6a0][Math.floor(Math.random()*3)]));
-  grp.add(body);
+  grp.add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.6, 0.35), mat([0xffb703,0xfb8500,0x06d6a0][Math.floor(Math.random()*3)])));
   const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.18, 0.37), mat(0xffffff));
   grp.add(stripe);
   return { grp, size: 0.8 };
@@ -283,20 +344,18 @@ function makeOnigiri(){
 function makeQuirky(){
   const grp = new THREE.Group();
   const geos = [new THREE.DodecahedronGeometry(0.5), new THREE.IcosahedronGeometry(0.5), new THREE.TorusKnotGeometry(0.32,0.11,48,8)];
-  const body = new THREE.Mesh(geos[Math.floor(Math.random()*geos.length)], mat([0xef476f,0x118ab2,0x9b5de5,0x06d6a0][Math.floor(Math.random()*4)]));
-  grp.add(body);
+  grp.add(new THREE.Mesh(geos[Math.floor(Math.random()*geos.length)], mat([0xef476f,0x118ab2,0x9b5de5,0x06d6a0][Math.floor(Math.random()*4)])));
   return { grp, size: 0.75 };
 }
 const PRODUCT_MAKERS = [makeMilkCarton, makeSodaCan, makeSnackBox, makeOnigiri, makeQuirky];
 
-let productGroup = null;   // group holding the product (rotated by touch)
+let productGroup = null;
 let barcodeMesh = null;
 
 function spawnProduct(){
   if(productGroup){ scene.remove(productGroup); productGroup = null; }
   const maker = PRODUCT_MAKERS[Math.floor(Math.random()*PRODUCT_MAKERS.length)];
   const { grp, size } = maker();
-  // attach barcode plane at a random orientation on a sphere around the product
   const bc = new THREE.Mesh(
     new THREE.PlaneGeometry(0.42, 0.3),
     new THREE.MeshBasicMaterial({ map: makeBarcodeTexture(), side: THREE.FrontSide })
@@ -307,7 +366,6 @@ function spawnProduct(){
   bc.rotateZ(Math.random()*Math.PI*2);
   grp.add(bc);
   barcodeMesh = bc;
-  // random initial spin so barcode is hidden
   grp.quaternion.setFromEuler(new THREE.Euler(Math.random()*6.28, Math.random()*6.28, Math.random()*6.28));
   grp.position.copy(ITEM_POS);
   scene.add(grp);
@@ -330,9 +388,8 @@ const browL = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.06, 0.06), browMat); 
 const browR = browL.clone(); browR.position.x = 0.27; customer.add(browR);
 const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.06, 0.06), mat(0xa04030));
 mouth.position.set(0, -0.32, 0.68); customer.add(mouth);
-// body
-const body = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.7, 1.2, 12), mat(0x5a7bd8));
-body.position.y = -1.3; customer.add(body);
+const bodyMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.7, 1.2, 12), mat(0x5a7bd8));
+bodyMesh.position.y = -1.3; customer.add(bodyMesh);
 customer.position.set(0, 2.6, -2.2);
 scene.add(customer);
 const CUSTOMER_BASE_Y = 2.6;
@@ -340,18 +397,14 @@ const CUSTOMER_BASE_Y = 2.6;
 const SKIN_CALM = new THREE.Color(0xf5c6a0);
 const SKIN_ANGRY = new THREE.Color(0xf07050);
 
-function updateCustomerFace(anger, time){ // anger 0..1
+function updateCustomerFace(anger, time){
   skinMat.color.copy(SKIN_CALM).lerp(SKIN_ANGRY, anger);
-  // brows tilt inward as anger rises
   browL.rotation.z = -anger * 0.7;
   browR.rotation.z =  anger * 0.7;
   browL.position.y = 0.3 - anger*0.08;
   browR.position.y = 0.3 - anger*0.08;
-  // mouth turns down / widens
   mouth.scale.x = 1 + anger*0.6;
-  mouth.rotation.z = 0;
   mouth.position.y = -0.32 - anger*0.06;
-  // 貧乏ゆすり: jitter grows with anger
   if(anger > 0.45){
     const amp = (anger - 0.45) * 0.18;
     customer.position.y = CUSTOMER_BASE_Y + Math.sin(time*30) * amp;
@@ -366,23 +419,24 @@ function updateCustomerFace(anger, time){ // anger 0..1
 const State = { TITLE:0, PLAY:1, CHECKOUT:2, OVER:3 };
 let state = State.TITLE;
 let score = 0;
-let itemIndex = 0;          // 0..2
+let itemIndex = 0;
 let customerCount = 0;
-let patience = 1;           // 0..1
-let patienceTime = 20;      // seconds for this customer
-let alignTimer = 0;         // time barcode has been aligned
+let patience = 1;
+let patienceTime = 20;
+let alignTimer = 0;
 let scanCooldown = 0;
 let angryWarned = false;
 
 const $ = id => document.getElementById(id);
 const hud = $('hud'), scoreEl = $('score'), itemNumEl = $('item-num'),
-      barEl = $('patience-bar'), statusEl = $('status-msg');
+      barEl = $('patience-bar'), statusEl = $('status-msg'), patienceWrap = $('patience-wrap');
 
+let statusTimer = null;
 function setStatus(text, ms=1500){
   statusEl.textContent = text;
-  statusEl.classList.remove('hidden');
-  clearTimeout(setStatus._t);
-  setStatus._t = setTimeout(()=>statusEl.classList.add('hidden'), ms);
+  statusEl.style.display = 'block';
+  if(statusTimer) clearTimeout(statusTimer);
+  statusTimer = setTimeout(()=>{ statusEl.style.display = 'none'; }, ms);
 }
 
 function newCustomer(){
@@ -403,7 +457,7 @@ function startGame(){
   scoreEl.textContent = '0';
   $('start-screen').style.display = 'none';
   $('gameover-screen').style.display = 'none';
-  hud.classList.remove('hidden');
+  hud.style.display = 'block';
   state = State.PLAY;
   newCustomer();
 }
@@ -412,14 +466,11 @@ function onScan(){
   score++; itemIndex++;
   scoreEl.textContent = score;
   playPip();
-  // +$1 float
   const f = document.createElement('div');
   f.className = 'float-money';
   f.textContent = '+$1';
-  f.style.left = '50%'; f.style.top = '38%';
   document.body.appendChild(f);
   setTimeout(()=>f.remove(), 950);
-  // beam flash green
   beamMat.color.set(0x22ff66);
   setTimeout(()=>beamMat.color.set(0xff2222), 200);
 
@@ -452,10 +503,9 @@ function gameOver(){
   state = State.OVER;
   playGameOver();
   if(productGroup){ scene.remove(productGroup); productGroup = null; }
-  hud.classList.add('hidden');
+  hud.style.display = 'none';
   $('final-score').textContent = score;
-  const go = $('gameover-screen');
-  go.style.display = 'flex';
+  $('gameover-screen').style.display = 'flex';
 }
 
 $('start-btn').addEventListener('click', startGame);
@@ -490,14 +540,12 @@ const _q = new THREE.Quaternion();
 function animate(){
   requestAnimationFrame(animate);
   let dt = clock.getDelta();
-  if(dt > 1/30) dt = 1/30;   // delta clamp for 120Hz ProMotion
+  if(dt > 1/30) dt = 1/30;
   const time = clock.elapsedTime;
 
-  // idle bobbing of beam glow
   beamMat.opacity = 0.7 + Math.sin(time*8)*0.15;
 
   if(state === State.PLAY){
-    // patience drain
     patience -= dt / patienceTime;
     if(patience <= 0){ patience = 0; gameOver(); }
     barEl.style.width = (patience*100).toFixed(1) + '%';
@@ -508,20 +556,19 @@ function animate(){
       angryWarned = true;
       playAngry();
       setStatus('💢 お客さんがイライラしてる！いそげ！', 1500);
-      document.querySelector('#hud .flex-1').classList.add('shake');
-      setTimeout(()=>document.querySelector('#hud .flex-1')?.classList.remove('shake'), 1500);
+      patienceWrap.classList.add('shake');
+      setTimeout(()=>patienceWrap.classList.remove('shake'), 1500);
     }
 
     if(scanCooldown > 0) scanCooldown -= dt;
 
-    // scan detection: barcode world normal vs scanner direction
     if(productGroup && barcodeMesh && scanCooldown <= 0){
       barcodeMesh.getWorldQuaternion(_q);
       _normal.set(0,0,1).applyQuaternion(_q);
       const dot = _normal.dot(SCAN_DIR);
       if(dot > 0.93){
         alignTimer += dt;
-        beamMat.color.set(0xffaa00); // aiming feedback
+        beamMat.color.set(0xffaa00);
         if(alignTimer > 0.12){
           alignTimer = 0;
           onScan();
