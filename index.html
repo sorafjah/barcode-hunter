@@ -401,9 +401,8 @@ function startGame(){
   ensureAudio();
   score = 0; customerCount = 0;
   scoreEl.textContent = '0';
-  $('start-screen').classList.add('hidden');
-  $('gameover-screen').classList.add('hidden');
-  $('gameover-screen').classList.remove('flex');
+  $('start-screen').style.display = 'none';
+  $('gameover-screen').style.display = 'none';
   hud.classList.remove('hidden');
   state = State.PLAY;
   newCustomer();
@@ -439,9 +438,9 @@ function doCheckout(){
   playCheckout();
   $('checkout-total').textContent = '$' + (customerCount*3 + 17);
   const cs = $('checkout-screen');
-  cs.classList.remove('hidden'); cs.classList.add('flex');
+  cs.style.display = 'flex';
   setTimeout(()=>{
-    cs.classList.add('hidden'); cs.classList.remove('flex');
+    cs.style.display = 'none';
     if(state === State.CHECKOUT){
       state = State.PLAY;
       newCustomer();
@@ -456,7 +455,7 @@ function gameOver(){
   hud.classList.add('hidden');
   $('final-score').textContent = score;
   const go = $('gameover-screen');
-  go.classList.remove('hidden'); go.classList.add('flex');
+  go.style.display = 'flex';
 }
 
 $('start-btn').addEventListener('click', startGame);
