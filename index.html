@@ -12,7 +12,7 @@
     touch-action: none; user-select: none; -webkit-user-select: none;
     -webkit-touch-callout: none; margin: 0; padding: 0;
     font-family: "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-    background: #1a1f2e;
+    background: #dff3ff;
   }
   #game-canvas { position: absolute; inset: 0; z-index: 0; display: block; }
 
@@ -29,14 +29,14 @@
     display: flex; align-items: center; gap: 16px;
   }
   .pill {
-    background: rgba(0,0,0,0.6); border-radius: 14px; padding: 8px 18px;
+    background: rgba(0,0,0,0.55); border-radius: 14px; padding: 8px 18px;
     color: #fff; font-size: 22px; font-weight: 900; white-space: nowrap;
   }
   #patience-wrap { flex: 1; max-width: 640px; }
-  #patience-label { color: #fff; font-size: 15px; font-weight: 900; margin-bottom: 4px; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  #patience-label { color: #fff; font-size: 15px; font-weight: 900; margin-bottom: 4px; text-shadow: 0 1px 3px rgba(0,0,0,.6); transition: color .2s; }
   #patience-track {
-    height: 26px; background: rgba(0,0,0,0.5); border-radius: 999px; overflow: hidden;
-    border: 2px solid rgba(255,255,255,0.4);
+    height: 26px; background: rgba(0,0,0,0.45); border-radius: 999px; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.5);
   }
   #patience-bar { height: 100%; border-radius: 999px; background: #4ade80; transition: background-color .3s; }
   #status-msg {
@@ -58,19 +58,19 @@
   .big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #b8860b, 0 4px 10px rgba(0,0,0,.35); }
 
   /* ---------- title screen ---------- */
-  #start-screen { background: linear-gradient(180deg,#312e81,#0f172a); }
+  #start-screen { background: linear-gradient(180deg,#6ea8ff,#3b6fe0); }
   #start-screen .emoji-hero { font-size: 64px; margin-bottom: 8px; }
-  #start-screen h1 { color: #fff; font-size: 42px; font-weight: 900; margin: 0 0 4px; letter-spacing: .03em; }
-  #start-screen .sub { color: #fcd34d; font-size: 18px; font-weight: 800; margin: 0 0 20px; }
+  #start-screen h1 { color: #fff; font-size: 42px; font-weight: 900; margin: 0 0 4px; letter-spacing: .03em; text-shadow: 0 3px 8px rgba(0,0,0,.25); }
+  #start-screen .sub { color: #fff9c4; font-size: 18px; font-weight: 800; margin: 0 0 20px; }
   #start-screen .rules {
-    background: rgba(255,255,255,0.1); border-radius: 20px; padding: 20px 26px; margin-bottom: 28px;
+    background: rgba(255,255,255,0.18); border-radius: 20px; padding: 20px 26px; margin-bottom: 28px;
     color: #fff; font-size: 17px; line-height: 1.9; text-align: left; max-width: 460px;
   }
-  #start-screen .rules b { color: #fcd34d; }
-  #start-screen .rules .warn { color: #f87171; }
+  #start-screen .rules b { color: #fff59d; }
+  #start-screen .rules .warn { color: #ffccd5; }
 
   /* ---------- checkout ---------- */
-  #checkout-screen { background: rgba(0,0,0,0.6); display: none; }
+  #checkout-screen { background: rgba(0,0,0,0.55); display: none; }
   @keyframes popIn { 0%{transform:scale(.6);opacity:0} 100%{transform:scale(1);opacity:1} }
   .checkout-card {
     background: #fff; border-radius: 26px; padding: 32px 48px; box-shadow: 0 20px 40px rgba(0,0,0,.4);
@@ -118,7 +118,7 @@
   <div id="hud-top">
     <div class="pill">🛒 <span id="score">0</span> 個</div>
     <div id="patience-wrap">
-      <div id="patience-label">😊 お客さんのガマン</div>
+      <div id="patience-label">😄 おきゃくさんのごきげん</div>
       <div id="patience-track"><div id="patience-bar" style="width:100%"></div></div>
     </div>
     <div class="pill">📦 <span id="item-num">1</span>/3</div>
@@ -134,8 +134,8 @@
   <div class="rules">
     <p>👆 商品を<b>ドラッグして回転</b></p>
     <p>📊 かくれた<b>バーコード</b>を見つけよう</p>
-    <p>🔴 <b style="color:#f87171">赤いレーザー</b>（正面）に向けるとスキャン！</p>
-    <p>⏰ お客さんが<span class="warn">怒る前に</span>3個スキャン！</p>
+    <p>🔴 <b style="color:#ffe0e0">赤いレーザー</b>（正面）に向けるとスキャン！</p>
+    <p>⏰ お客さんが<span class="warn">おこる前に</span>3個スキャン！</p>
   </div>
   <button id="start-btn" class="big-btn">スタート！</button>
 </div>
@@ -213,6 +213,7 @@ function playCheckout(){
   notes.forEach((n,i)=>beep(n, 0.15, 'triangle', 0.25, i*0.1));
 }
 function playAngry(){ beep(180, 0.3, 'sawtooth', 0.3); beep(140, 0.5, 'sawtooth', 0.3, 0.25); }
+function playFootsteps(){ beep(90, 0.06, 'square', 0.12); }
 function playGameOver(){ [400,350,300,200].forEach((n,i)=>beep(n, 0.25, 'sawtooth', 0.3, i*0.2)); }
 
 /* ============ Three.js setup ============ */
@@ -220,17 +221,22 @@ const canvas = document.getElementById('game-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xbfe8f5);
-scene.fog = new THREE.Fog(0xbfe8f5, 12, 25);
+const SKY_COLOR = 0xdff3ff;
+scene.background = new THREE.Color(SKY_COLOR);
+scene.fog = new THREE.Fog(SKY_COLOR, 15, 32);
 
-const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 50);
-camera.position.set(0, 2.6, 4.6);
-camera.lookAt(0, 1.7, 0);
+const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 60);
+camera.position.set(0, 2.75, 5.1);
+camera.lookAt(0, 1.6, -1);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-const dl = new THREE.DirectionalLight(0xfff4e0, 1.1);
-dl.position.set(3, 6, 4);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xffe3b8, 0.9));
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const dl = new THREE.DirectionalLight(0xfff6df, 1.25);
+dl.position.set(4, 8, 5);
 scene.add(dl);
+const fillLight = new THREE.PointLight(0xfff0d0, 0.4, 20);
+fillLight.position.set(-3, 3, 3);
+scene.add(fillLight);
 
 function resize(){
   const w = innerWidth, h = innerHeight;
@@ -243,48 +249,84 @@ addEventListener('resize', resize); resize();
 /* ---- store environment ---- */
 const mat = (c)=>new THREE.MeshLambertMaterial({color:c});
 // floor
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(30,30), mat(0xd9cbb0));
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(34,34), mat(0xf0e2c4));
 floor.rotation.x = -Math.PI/2;
 scene.add(floor);
-// back wall + shelves (decoration)
-const wall = new THREE.Mesh(new THREE.BoxGeometry(30, 8, 0.3), mat(0xf2ede2));
-wall.position.set(0, 4, -6); scene.add(wall);
-for(let sx=-1; sx<=1; sx+=2){
+// back wall (deep in the store)
+const WALL_Z = -14;
+const wall = new THREE.Mesh(new THREE.BoxGeometry(34, 9, 0.3), mat(0xfffaf0));
+wall.position.set(0, 4.5, WALL_Z); scene.add(wall);
+// side walls to frame the aisle
+for(const sx of [-1,1]){
+  const sideWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 9, 20), mat(0xfdf6e6));
+  sideWall.position.set(sx*9, 4.5, WALL_Z + 10);
+  scene.add(sideWall);
+}
+// receding aisle of shelves with lined-up products, several rows deep
+const PRODUCT_COLORS = [0xff8c69,0x7ec8e3,0xffd166,0x90ee90,0xc39bd3,0xf67280,0x6fd3c7,0xffcb77];
+function buildShelfUnit(){
   const shelf = new THREE.Group();
   for(let i=0;i<3;i++){
-    const b = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.12, 0.8), mat(0x8a9bb0));
-    b.position.y = 1.2 + i*0.9; shelf.add(b);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.1, 0.75), mat(0xaebfd4));
+    b.position.y = 1.1 + i*0.85; shelf.add(b);
     for(let j=0;j<5;j++){
-      const p = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.35),
-        mat([0xff8c69,0x7ec8e3,0xffd166,0x90ee90,0xc39bd3][(i*5+j)%5]));
-      p.position.set(-1.4 + j*0.7, 1.2 + i*0.9 + 0.31, 0);
+      const p = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.48, 0.34),
+        mat(PRODUCT_COLORS[(i*5+j+Math.floor(Math.random()*3)) % PRODUCT_COLORS.length]));
+      p.position.set(-1.3 + j*0.65, 1.1 + i*0.85 + 0.29, 0);
       shelf.add(p);
     }
   }
-  shelf.position.set(sx*4.5, 0, -5.5);
-  scene.add(shelf);
+  return shelf;
+}
+const AISLE_Z = [-5.2, -8.2, -11.2];
+for(const sx of [-1,1]){
+  for(const z of AISLE_Z){
+    const shelf = buildShelfUnit();
+    shelf.position.set(sx*4.6, 0, z);
+    scene.add(shelf);
+  }
 }
 // counter
-const counter = new THREE.Mesh(new THREE.BoxGeometry(6, 1.3, 2.4), mat(0x5fb3a1));
+const counter = new THREE.Mesh(new THREE.BoxGeometry(6, 1.3, 2.4), mat(0x6dd0ba));
 counter.position.set(0, 0.65, 0.6); scene.add(counter);
-const counterTop = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.12, 2.6), mat(0xf7f3e8));
+const counterTop = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.12, 2.6), mat(0xfffaf0));
 counterTop.position.set(0, 1.36, 0.6); scene.add(counterTop);
 
-/* ---- laser scanner (two posts + red beam, in front of item) ---- */
+/* ---- barcode scanner (redesigned) ---- */
 const ITEM_POS = new THREE.Vector3(0, 2.05, 1.0);
 const scannerGrp = new THREE.Group();
-const postMat = mat(0x3b4252);
+const housingMat = new THREE.MeshLambertMaterial({color: 0x2b2f3a});
+const ledMat = new THREE.MeshBasicMaterial({color: 0xff3b3b});
 for(const sx of [-1,1]){
-  const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.7, 0.12), postMat);
-  post.position.set(sx*1.15, -0.35+0.35, 0);
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.68, 8), housingMat);
+  post.position.set(sx*1.15, 0.0, 0);
   scannerGrp.add(post);
-  const base = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.3), postMat);
-  base.position.set(sx*1.15, -0.35, 0);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.19, 0.08, 10), housingMat);
+  base.position.set(sx*1.15, -0.34, 0);
   scannerGrp.add(base);
+  // glowing LED cap
+  const led = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), ledMat.clone());
+  led.position.set(sx*1.15, 0.36, 0);
+  scannerGrp.add(led);
+  scannerGrp.userData['led'+sx] = led;
 }
-const beamMat = new THREE.MeshBasicMaterial({color:0xff2222, transparent:true, opacity:0.85});
-const beam = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.05, 0.05), beamMat);
+// bright laser core (functional detector beam)
+const beamMat = new THREE.MeshBasicMaterial({color:0xff2222, transparent:true, opacity:0.95});
+const beam = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.035, 0.035), beamMat);
 scannerGrp.add(beam);
+// soft glow around beam (additive)
+const glowMat = new THREE.MeshBasicMaterial({color:0xff5252, transparent:true, opacity:0.35, blending: THREE.AdditiveBlending, depthWrite:false});
+const beamGlow = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.14, 0.14), glowMat);
+scannerGrp.add(beamGlow);
+// cosmetic fan lines (typical checkout-scanner crosshatch look, purely decorative)
+const fanLines = [];
+for(const ang of [-0.22, -0.1, 0.1, 0.22]){
+  const fmat = new THREE.MeshBasicMaterial({color:0xff6b6b, transparent:true, opacity:0.28, blending: THREE.AdditiveBlending, depthWrite:false});
+  const fl = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.018, 0.018), fmat);
+  fl.rotation.z = ang;
+  scannerGrp.add(fl);
+  fanLines.push(fl);
+}
 scannerGrp.position.set(0, 2.0, 1.85);
 scene.add(scannerGrp);
 const SCAN_DIR = new THREE.Vector3(0, 0, 1);
@@ -373,12 +415,15 @@ function spawnProduct(){
   playShhhk();
 }
 
-/* ---- customer face ---- */
+/* ============================================================
+   Customer: face expression system + walk-in/walk-out animation
+   ============================================================ */
 const customer = new THREE.Group();
 const skinMat = new THREE.MeshLambertMaterial({color: 0xf5c6a0});
 const head = new THREE.Mesh(new THREE.SphereGeometry(0.75, 20, 16), skinMat);
 customer.add(head);
-const hair = new THREE.Mesh(new THREE.SphereGeometry(0.78, 20, 12, 0, Math.PI*2, 0, Math.PI/2.4), mat(0x4a3728));
+const hairMat = mat(0x4a3728);
+const hair = new THREE.Mesh(new THREE.SphereGeometry(0.78, 20, 12, 0, Math.PI*2, 0, Math.PI/2.4), hairMat);
 hair.position.y = 0.12; customer.add(hair);
 const eyeMat = mat(0x222222);
 const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), eyeMat); eyeL.position.set(-0.26, 0.08, 0.66); customer.add(eyeL);
@@ -386,42 +431,97 @@ const eyeR = eyeL.clone(); eyeR.position.x = 0.26; customer.add(eyeR);
 const browMat = mat(0x3a2a1a);
 const browL = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.06, 0.06), browMat); browL.position.set(-0.27, 0.3, 0.66); customer.add(browL);
 const browR = browL.clone(); browR.position.x = 0.27; customer.add(browR);
-const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.06, 0.06), mat(0xa04030));
-mouth.position.set(0, -0.32, 0.68); customer.add(mouth);
-const bodyMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.7, 1.2, 12), mat(0x5a7bd8));
+// curved mouth made of two corner segments meeting at a center point (bends into smile/frown)
+const mouthMat = mat(0xa8503d);
+const mouthL = new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,1,6), mouthMat); customer.add(mouthL);
+const mouthR = new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,1,6), mouthMat); customer.add(mouthR);
+function orientSegment(mesh, p1, p2){
+  const dir = new THREE.Vector3().subVectors(p2, p1);
+  const len = Math.max(dir.length(), 0.001);
+  mesh.position.copy(p1).addScaledVector(dir, 0.5);
+  mesh.scale.set(1, len, 1);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+}
+// blush cheeks (fade in when very happy)
+const blushMat = new THREE.MeshBasicMaterial({color:0xff9aa8, transparent:true, opacity:0});
+const blushL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), blushMat.clone()); blushL.position.set(-0.42, -0.05, 0.55); blushL.scale.set(1,0.7,0.4); customer.add(blushL);
+const blushR = blushL.clone(); blushR.position.x = 0.42; customer.add(blushR);
+
+const bodyMat = mat(0x5a7bd8);
+const bodyMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.7, 1.2, 12), bodyMat);
 bodyMesh.position.y = -1.3; customer.add(bodyMesh);
-customer.position.set(0, 2.6, -2.2);
 scene.add(customer);
-const CUSTOMER_BASE_Y = 2.6;
 
+const COUNTER_CUSTOMER_POS = new THREE.Vector3(0, 2.6, -2.2);
+const ENTER_START_POS = new THREE.Vector3(0, 2.35, -8.5);
+const HAPPY_EXIT_POS = new THREE.Vector3(6.5, 2.6, -1.2);
+const ANGRY_EXIT_POS = new THREE.Vector3(-6.5, 2.55, -1.4);
+
+const HAIR_COLORS = [0x4a3728, 0x2b2b2b, 0x8b5a2b, 0xd4a017, 0x6b3fa0, 0xc0392b, 0xeeeeee];
+const SHIRT_COLORS = [0x5a7bd8, 0xe07a5f, 0x81b29a, 0xf2cc8f, 0x9b5de5, 0xf15bb5, 0x4cc9f0];
+const SKIN_TONES = [0xf5c6a0, 0xe8b088, 0xc68863, 0x8d5524, 0xffdbac];
 const SKIN_CALM = new THREE.Color(0xf5c6a0);
-const SKIN_ANGRY = new THREE.Color(0xf07050);
+const SKIN_ANGRY = new THREE.Color(0xf0563d);
 
-function updateCustomerFace(anger, time){
-  skinMat.color.copy(SKIN_CALM).lerp(SKIN_ANGRY, anger);
-  browL.rotation.z = -anger * 0.7;
-  browR.rotation.z =  anger * 0.7;
-  browL.position.y = 0.3 - anger*0.08;
-  browR.position.y = 0.3 - anger*0.08;
-  mouth.scale.x = 1 + anger*0.6;
-  mouth.position.y = -0.32 - anger*0.06;
-  if(anger > 0.45){
-    const amp = (anger - 0.45) * 0.18;
-    customer.position.y = CUSTOMER_BASE_Y + Math.sin(time*30) * amp;
-    customer.rotation.z = Math.sin(time*22) * amp * 0.5;
+function randomizeCustomerAppearance(){
+  hairMat.color.setHex(HAIR_COLORS[Math.floor(Math.random()*HAIR_COLORS.length)]);
+  bodyMat.color.setHex(SHIRT_COLORS[Math.floor(Math.random()*SHIRT_COLORS.length)]);
+  const skin = SKIN_TONES[Math.floor(Math.random()*SKIN_TONES.length)];
+  SKIN_CALM.setHex(skin);
+}
+
+// mood: 1 = very happy, 0 = furious
+function updateCustomerFace(mood, time, opts){
+  opts = opts || {};
+  skinMat.color.copy(SKIN_CALM).lerp(SKIN_ANGRY, 1-mood);
+  const browAnger = Math.pow(1-mood, 0.55); // exaggerate early changes
+  browL.rotation.z = -browAnger * 0.75;
+  browR.rotation.z =  browAnger * 0.75;
+  browL.position.y = 0.3 - browAnger*0.1;
+  browR.position.y = 0.3 - browAnger*0.1;
+  browL.position.x = -0.27 + browAnger*0.06;
+  browR.position.x =  0.27 - browAnger*0.06;
+
+  const cx=0, cy=-0.30, cz=0.68;
+  const curve = (mood-0.5); // >0 smile, <0 frown
+  const cornerY = cy + curve*0.26;
+  const centerY = cy - curve*0.11;
+  const pL = new THREE.Vector3(-0.16, cornerY, cz-0.01);
+  const pR = new THREE.Vector3(0.16, cornerY, cz-0.01);
+  const pC = new THREE.Vector3(0, centerY, cz+0.02);
+  orientSegment(mouthL, pC, pL);
+  orientSegment(mouthR, pC, pR);
+
+  const blushOpacity = Math.max(0, (mood-0.55)*1.8);
+  blushL.material.opacity = blushOpacity;
+  blushR.material.opacity = blushOpacity;
+
+  // shiver when quite unhappy
+  if(opts.jitter){
+    const amp = opts.jitterAmp !== undefined ? opts.jitterAmp : 0.05;
+    customer.position.x += Math.sin(time*28)*amp;
+    customer.position.y += Math.sin(time*33)*amp*0.6;
+    customer.rotation.z = Math.sin(time*24)*0.08;
   } else {
-    customer.position.y = CUSTOMER_BASE_Y;
     customer.rotation.z = 0;
   }
+}
+
+/* ---- generic tween for customer walking ---- */
+let customerBasePos = COUNTER_CUSTOMER_POS.clone();
+let tween = null;
+function tweenCustomerTo(target, duration, onDone){
+  tween = { from: customerBasePos.clone(), to: target.clone(), duration, elapsed: 0, onDone };
 }
 
 /* ============ Game state ============ */
 const State = { TITLE:0, PLAY:1, CHECKOUT:2, OVER:3 };
 let state = State.TITLE;
+let customerState = 'GONE'; // ENTERING | ACTIVE | HAPPY_EXIT | FUMING | ANGRY_EXIT | GONE
 let score = 0;
 let itemIndex = 0;
 let customerCount = 0;
-let patience = 1;
+let patience = 1;      // also represents mood (1 = great mood, 0 = furious) — displayed as "ごきげん"
 let patienceTime = 20;
 let alignTimer = 0;
 let scanCooldown = 0;
@@ -429,7 +529,8 @@ let angryWarned = false;
 
 const $ = id => document.getElementById(id);
 const hud = $('hud'), scoreEl = $('score'), itemNumEl = $('item-num'),
-      barEl = $('patience-bar'), statusEl = $('status-msg'), patienceWrap = $('patience-wrap');
+      barEl = $('patience-bar'), statusEl = $('status-msg'), patienceWrap = $('patience-wrap'),
+      patienceLabel = $('patience-label');
 
 let statusTimer = null;
 function setStatus(text, ms=1500){
@@ -439,7 +540,14 @@ function setStatus(text, ms=1500){
   statusTimer = setTimeout(()=>{ statusEl.style.display = 'none'; }, ms);
 }
 
-function newCustomer(){
+function updateMoodLabel(mood){
+  if(mood > 0.66){ patienceLabel.textContent = '😄 おきゃくさんのごきげん'; patienceLabel.style.color = '#fff'; }
+  else if(mood > 0.35){ patienceLabel.textContent = '😐 ちょっと不満そう…'; patienceLabel.style.color = '#fde68a'; }
+  else { patienceLabel.textContent = '😠 おこりそう！いそげ！'; patienceLabel.style.color = '#fca5a5'; }
+}
+
+function beginCustomerTurn(){
+  customerState = 'ACTIVE';
   customerCount++;
   itemIndex = 0;
   patienceTime = Math.max(10, 21 - customerCount);
@@ -447,8 +555,17 @@ function newCustomer(){
   angryWarned = false;
   itemNumEl.textContent = '1';
   spawnProduct();
+  state = State.PLAY;
   if(customerCount === 1) setStatus('👆 商品を回してバーコードを探そう！', 3000);
   else setStatus(`👤 ${customerCount}人目のお客さん！`, 1200);
+}
+
+function bringInNextCustomer(){
+  customerState = 'ENTERING';
+  randomizeCustomerAppearance();
+  customerBasePos.copy(ENTER_START_POS);
+  customer.position.copy(customerBasePos);
+  tweenCustomerTo(COUNTER_CUSTOMER_POS, 0.9, beginCustomerTurn);
 }
 
 function startGame(){
@@ -458,8 +575,8 @@ function startGame(){
   $('start-screen').style.display = 'none';
   $('gameover-screen').style.display = 'none';
   hud.style.display = 'block';
-  state = State.PLAY;
-  newCustomer();
+  state = State.CHECKOUT; // transitional, no drain/scan until customer arrives
+  bringInNextCustomer();
 }
 
 function onScan(){
@@ -492,20 +609,31 @@ function doCheckout(){
   cs.style.display = 'flex';
   setTimeout(()=>{
     cs.style.display = 'none';
-    if(state === State.CHECKOUT){
-      state = State.PLAY;
-      newCustomer();
-    }
+    // happy customer walks off to the side, then the next one comes from the back
+    customerState = 'HAPPY_EXIT';
+    tweenCustomerTo(HAPPY_EXIT_POS, 0.85, () => {
+      customerState = 'GONE';
+      bringInNextCustomer();
+    });
   }, 1200);
 }
 
 function gameOver(){
   state = State.OVER;
+  customerState = 'FUMING';
   playGameOver();
+  playAngry();
   if(productGroup){ scene.remove(productGroup); productGroup = null; }
   hud.style.display = 'none';
-  $('final-score').textContent = score;
-  $('gameover-screen').style.display = 'flex';
+  // customer fumes in place for a moment, then storms off angry
+  setTimeout(() => {
+    customerState = 'ANGRY_EXIT';
+    tweenCustomerTo(ANGRY_EXIT_POS, 0.7, () => {
+      customerState = 'GONE';
+      $('final-score').textContent = score;
+      $('gameover-screen').style.display = 'flex';
+    });
+  }, 1200);
 }
 
 $('start-btn').addEventListener('click', startGame);
@@ -543,19 +671,25 @@ function animate(){
   if(dt > 1/30) dt = 1/30;
   const time = clock.elapsedTime;
 
-  beamMat.opacity = 0.7 + Math.sin(time*8)*0.15;
+  beamMat.opacity = 0.85 + Math.sin(time*8)*0.12;
+  beamGlow.material.opacity = 0.3 + Math.sin(time*6)*0.08;
+  fanLines.forEach((fl,i)=>{ fl.material.opacity = 0.18 + Math.abs(Math.sin(time*3 + i))*0.16; });
+  for(const sx of [-1,1]){
+    const led = scannerGrp.userData['led'+sx];
+    led.material.opacity = 0.6 + Math.sin(time*10)*0.4;
+  }
 
   if(state === State.PLAY){
     patience -= dt / patienceTime;
     if(patience <= 0){ patience = 0; gameOver(); }
     barEl.style.width = (patience*100).toFixed(1) + '%';
-    barEl.style.background = patience > 0.5 ? '#4ade80' : patience > 0.25 ? '#facc15' : '#ef4444';
-    const anger = 1 - patience;
-    updateCustomerFace(anger, time);
-    if(anger > 0.7 && !angryWarned){
+    barEl.style.background = patience > 0.66 ? '#4ade80' : patience > 0.35 ? '#facc15' : '#ef4444';
+    updateMoodLabel(patience);
+
+    if(patience < 0.45 && !angryWarned){
       angryWarned = true;
       playAngry();
-      setStatus('💢 お客さんがイライラしてる！いそげ！', 1500);
+      setStatus('💢 お客さんがおこりそう！いそげ！', 1500);
       patienceWrap.classList.add('shake');
       setTimeout(()=>patienceWrap.classList.remove('shake'), 1500);
     }
@@ -578,13 +712,36 @@ function animate(){
         beamMat.color.set(0xff2222);
       }
     }
+  }
+
+  // ---- customer position tween ----
+  if(tween){
+    tween.elapsed += dt;
+    const t = Math.min(1, tween.elapsed / tween.duration);
+    const te = t*t*(3-2*t); // smoothstep
+    customerBasePos.lerpVectors(tween.from, tween.to, te);
+    if(t >= 1){ const cb = tween.onDone; tween = null; if(cb) cb(); }
+  }
+  customer.position.copy(customerBasePos);
+
+  // little walking bounce while entering/leaving happily
+  if(customerState === 'ENTERING' || customerState === 'HAPPY_EXIT'){
+    customer.position.y += Math.abs(Math.sin(time*11)) * 0.07;
+  }
+
+  // ---- face expression per state ----
+  if(state === State.PLAY && customerState === 'ACTIVE'){
+    updateCustomerFace(patience, time, { jitter: patience < 0.55, jitterAmp: (0.55-patience)*0.22 });
+  } else if(customerState === 'FUMING' || customerState === 'ANGRY_EXIT'){
+    updateCustomerFace(0, time, { jitter: true, jitterAmp: 0.075 });
   } else {
-    updateCustomerFace(0, time);
+    updateCustomerFace(1, time, { jitter: false });
   }
 
   renderer.render(scene, camera);
 }
 animate();
+
 </script>
 </body>
 </html>
