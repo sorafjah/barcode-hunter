@@ -121,7 +121,7 @@
       <div id="patience-label">😄 おきゃくさんのごきげん</div>
       <div id="patience-track"><div id="patience-bar" style="width:100%"></div></div>
     </div>
-    <div class="pill">📦 <span id="item-num">1</span>/3</div>
+    <div class="pill">📦 <span id="item-num">1</span>/<span id="item-total">3</span></div>
   </div>
   <div id="status-msg"></div>
 </div>
@@ -520,6 +520,7 @@ let state = State.TITLE;
 let customerState = 'GONE'; // ENTERING | ACTIVE | HAPPY_EXIT | FUMING | ANGRY_EXIT | GONE
 let score = 0;
 let itemIndex = 0;
+let itemsNeeded = 3;
 let customerCount = 0;
 let patience = 1;      // also represents mood (1 = great mood, 0 = furious) — displayed as "ごきげん"
 let patienceTime = 20;
@@ -528,7 +529,7 @@ let scanCooldown = 0;
 let angryWarned = false;
 
 const $ = id => document.getElementById(id);
-const hud = $('hud'), scoreEl = $('score'), itemNumEl = $('item-num'),
+const hud = $('hud'), scoreEl = $('score'), itemNumEl = $('item-num'), itemTotalEl = $('item-total'),
       barEl = $('patience-bar'), statusEl = $('status-msg'), patienceWrap = $('patience-wrap'),
       patienceLabel = $('patience-label');
 
@@ -550,14 +551,16 @@ function beginCustomerTurn(){
   customerState = 'ACTIVE';
   customerCount++;
   itemIndex = 0;
+  itemsNeeded = customerCount <= 3 ? 3 : (3 + Math.floor(Math.random()*6)); // 3〜8個、最初の3人は3個固定
   patienceTime = Math.max(10, 21 - customerCount);
   patience = 1;
   angryWarned = false;
   itemNumEl.textContent = '1';
+  itemTotalEl.textContent = String(itemsNeeded);
   spawnProduct();
   state = State.PLAY;
   if(customerCount === 1) setStatus('👆 商品を回してバーコードを探そう！', 3000);
-  else setStatus(`👤 ${customerCount}人目のお客さん！`, 1200);
+  else setStatus(`👤 ${customerCount}人目のお客さん！（${itemsNeeded}個）`, 1400);
 }
 
 function bringInNextCustomer(){
@@ -591,7 +594,7 @@ function onScan(){
   beamMat.color.set(0x22ff66);
   setTimeout(()=>beamMat.color.set(0xff2222), 200);
 
-  if(itemIndex >= 3){
+  if(itemIndex >= itemsNeeded){
     doCheckout();
   } else {
     itemNumEl.textContent = String(itemIndex + 1);
@@ -604,7 +607,7 @@ function doCheckout(){
   state = State.CHECKOUT;
   if(productGroup){ scene.remove(productGroup); productGroup = null; }
   playCheckout();
-  $('checkout-total').textContent = '$' + (customerCount*3 + 17);
+  $('checkout-total').textContent = '$' + (itemsNeeded*3 + 8 + customerCount);
   const cs = $('checkout-screen');
   cs.style.display = 'flex';
   setTimeout(()=>{
