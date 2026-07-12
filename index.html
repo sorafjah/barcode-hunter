@@ -239,12 +239,20 @@ fillLight.position.set(-3, 3, 3);
 scene.add(fillLight);
 
 function resize(){
-  const w = innerWidth, h = innerHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w/h;
+  const vv = window.visualViewport;
+  const w = Math.round(vv ? vv.width : innerWidth);
+  const h = Math.round(vv ? vv.height : innerHeight);
+  renderer.setSize(w, h, true);
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
-addEventListener('resize', resize); resize();
+addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 300));
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', resize);
+  window.visualViewport.addEventListener('scroll', resize);
+}
+resize();
 
 /* ---- store environment ---- */
 const mat = (c)=>new THREE.MeshLambertMaterial({color:c});
