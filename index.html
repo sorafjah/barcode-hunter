@@ -108,6 +108,30 @@
   }
   #rotate-hint .emoji { font-size: 60px; margin-bottom: 16px; }
   @media (orientation: portrait) { #rotate-hint { display: flex; } }
+/* スマホ用レイアウト調整2 */
+@media (orientation:portrait) and (max-width:500px) {
+  #rotate-hint .ipad-word { display:none; }
+}
+@media (orientation:landscape) and (max-height:500px) {
+  #start-screen, #gameover-screen { justify-content:flex-start; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:8px 0; }
+  #start-screen > :first-child, #gameover-screen > :first-child { margin-top:auto; }
+  #start-screen > :last-child, #gameover-screen > :last-child { margin-bottom:auto; }
+  #start-screen .emoji-hero, #gameover-screen .emoji-hero { display:none; }
+  #start-screen h1 { font-size:26px; }
+  #start-screen .sub { font-size:14px; margin-bottom:8px; }
+  #start-screen .rules { display:grid; grid-template-columns:1fr 1fr; gap:2px 16px; max-width:660px;
+    font-size:14px; line-height:1.6; padding:8px 16px; margin-bottom:12px; }
+  #start-screen .rules p { margin:0; }
+  #gameover-screen h2 { font-size:28px; margin-bottom:4px; }
+  #gameover-screen .sub { font-size:15px; margin-bottom:10px; }
+  .score-card { padding:6px 30px; margin-bottom:12px; }
+  .score-card .num { font-size:36px; }
+  .big-btn { min-height:48px; font-size:22px; padding:10px 40px; }
+  .checkout-card { padding:16px 28px; }
+  .pill { font-size:17px; padding:5px 12px; }
+  #status-msg { top:64px; font-size:16px; }
+}
+/* /スマホ用レイアウト調整2 */
 </style>
 </head>
 <body>
@@ -164,7 +188,7 @@
 <!-- ===== rotate hint ===== -->
 <div id="rotate-hint">
   <div class="emoji">📱↻</div>
-  iPadを横向きにしてください
+  <span class="ipad-word">iPadを</span>横向きにしてください
 </div>
 
 <script type="importmap">
